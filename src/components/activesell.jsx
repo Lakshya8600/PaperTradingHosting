@@ -1,0 +1,101 @@
+
+import React, { useEffect, useState } from "react";
+import { useLocalStorage } from "usehooks-ts";
+import { useBalance } from "../hooks/useBalance";
+
+const ActiveSellList = () => {
+  const [activeSell, setActiveSell] = useLocalStorage("activeSell", []);
+  const [activeBuy, setActiveBuy] = useLocalStorage("activeBuy", []);
+  const [history, setHistory] = useLocalStorage("history", []);
+  const [balance, setBalance] = useBalance();
+
+  const currentPrice = 1000;
+  const [profits, setProfits] = useState([]);
+
+  const calculateProfit = (sellPrice, quantity) => {
+    let profit = (sellPrice - currentPrice) * quantity; 
+    let fluctuatedProfit = profit + (Math.random() * 2 - 1);
+    return fluctuatedProfit;
+  };
+
+  useEffect(() => {
+    const updateProfits = () => {
+      const newProfits = activeSell.map((trade) =>
+        calculateProfit(trade.price, trade.quantity)
+      );
+      setProfits(newProfits);
+    };
+
+    updateProfits();
+    const interval = setInterval(updateProfits, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeSell]);
+
+  const closeSellTrade = (trade, index) => {
+    // Remove sell trade
+    const updatedSellList = [...activeSell];
+    updatedSellList.splice(index, 1);
+    setActiveSell(updatedSellList);
+
+    // Add to history
+    const completedSellTrade = {
+      ...trade,
+      action: "sell (closed)",
+      date: new Date().toLocaleDateString(),
+    };
+    setHistory((prevHistory) => [...prevHistory, completedSellTrade]);
+
+    
+    // Update balance
+    setBalance((prevBalance) => prevBalance - trade.quantity * currentPrice);
+  };
+
+  return (
+    <div className="bg-gray-800 p-6 rounded-lg shadow-xl mt-6">
+      <h3 className="text-xl font-semibold mb-4 text-red-400">Active Sell Trades</h3>
+
+      {activeSell.length === 0 ? (
+        <p className="text-gray-400">No active sell trades found.</p>
+      ) : (
+        <table className="w-full text-left">
+          <thead>
+            <tr className="text-gray-300 border-b border-gray-700">
+              <th className="pb-2">Stock</th>
+              <th className="pb-2">Quantity</th>
+              <th className="pb-2">Sell Price</th>
+              <th className="pb-2">Current Profit</th>
+              <th className="pb-2">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {activeSell.map((trade, index) => (
+              <tr key={index} className="text-white border-b border-gray-700">
+                <td className="py-2">{trade.stock}</td>
+                <td className="py-2">{trade.quantity}</td>
+                <td className="py-2">₹{trade.price}</td>
+                <td className={`py-2 ${profits[index] >= 0 ? "text-green-400" : "text-red-400"}`}>
+                  {profits[index] !== undefined
+                    ? profits[index] >= 0
+                      ? `₹${profits[index].toFixed(2)}`
+                      : `-₹${Math.abs(profits[index]).toFixed(2)}`
+                    : "₹0.00"}
+                </td>
+                <td className="py-2">
+                  <button
+                    className="bg-green-500 text-white py-2 px-4 rounded-lg"
+                    onClick={() => closeSellTrade(trade, index)}
+                  >
+                    Close Trade
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+};
+
+export default ActiveSellList;

@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
 import { useBalance } from "../hooks/useBalance"; 

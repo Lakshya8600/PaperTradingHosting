@@ -3,24 +3,24 @@ import ApexChart from "react-apexcharts";
 import { useLocalStorage } from "usehooks-ts";
 import { useBalance } from "../hooks/useBalance";
 
-const Trade = ({ symbol = "TATA" }) => {
+const Trade = ({ symbol }) => {
+  const [currentPrice, setCurrentPrice] = useState(null);
+  const [companyName, setCompanyName] = useState(symbol);
   const [balance, setBalance] = useBalance();
-
   const [range, setRange] = useState("6mo");
   const [interval, setInterval] = useState("1d");
   const [series, setSeries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const currentPrice = 1000;
 
-  const [object, setObject] = useLocalStorage("object", {
-    quantity: 0,
-    stock: symbol,
-    price: currentPrice,
-    date: new Date().toLocaleDateString(),
-    display: 0,
-  });
+  // const [object, setObject] = useLocalStorage("object", {
+  //   quantity: "",
+  //   stock: symbol,
+  //   price: currentPrice,
+  //   date: new Date().toLocaleDateString(),
+  //   display: "",
+  // });
 
   const [activeBuy, setActiveBuy] = useLocalStorage("activeBuy", []);
   const [activeSell, setActiveSell] = useLocalStorage("activeSell", []);
@@ -53,16 +53,22 @@ const Trade = ({ symbol = "TATA" }) => {
       const highs = Object.values(rawData[`('High', '${symbol}.NS')`] || []);
       const lows = Object.values(rawData[`('Low', '${symbol}.NS')`] || []);
 
-      if (dates.length === 0 || closes.length === 0) {
-        throw new Error("No data available for the selected range and interval.");
-      }
+      const candlestickData = dates.map((timestamp, index) => {
+        const utcDate = new Date(timestamp);
+        const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+        const istDate = new Date(utcDate.getTime() + istOffset);
 
-      const candlestickData = dates.map((timestamp, index) => ({
-        x: new Date(timestamp),
-        y: [opens[index], highs[index], lows[index], closes[index]],
-      }));
+        return {
+          x: istDate,
+          y: [opens[index], highs[index], lows[index], closes[index]],
+        };
+      });
 
       setSeries([{ data: candlestickData }]);
+      const latestClose = closes[closes.length - 1];
+      setCurrentPrice(latestClose);
+    
+
     } catch (err) {
       console.error("Error fetching chart:", err);
       setError(err.message);
@@ -72,9 +78,19 @@ const Trade = ({ symbol = "TATA" }) => {
     }
   };
 
+
+
   useEffect(() => {
     fetchData();
   }, [symbol, range, interval]);
+
+  const [object, setObject] = useLocalStorage("object", {
+    quantity: 0,
+    stock: symbol,
+    price: currentPrice,
+    date: new Date().toLocaleDateString(),
+    display: 0,
+  });
 
   const handleCloseTrade = (tradeIndex, type) => {
     let trade;
@@ -140,7 +156,7 @@ const Trade = ({ symbol = "TATA" }) => {
 
   return (
     <>
-      
+
       <div className="min-h-screen bg-gray-950 text-white px-4 py-12">
         {/* Range and Interval Selectors */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
@@ -183,6 +199,17 @@ const Trade = ({ symbol = "TATA" }) => {
           </div>
         )}
 
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-semibold text-white">
+            {symbol} 
+          </h2>
+          {currentPrice && (
+            <p className="text-lg text-green-400 mt-1">
+              Current Price: ₹{Number(currentPrice).toFixed(2)}
+            </p>
+          )}
+        </div>
+
         {/* Candlestick Chart */}
         <div className="bg-gray-900 p-4 rounded-xl shadow-xl mb-12">
           {loading ? (
@@ -196,7 +223,7 @@ const Trade = ({ symbol = "TATA" }) => {
         <div className="flex justify-center items-center">
           <form className="bg-gray-900 p-8 rounded-xl shadow-xl w-full max-w-md space-y-6">
             <h2 className="text-3xl font-bold text-center text-green-400">Trade Panel</h2>
-
+            <span className="text-sm text-gray-400 flex items-center">Current Price of the stock: ₹{Number(currentPrice).toFixed(2)}</span>
             {/* Quantity Input */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Quantity</label>
@@ -222,9 +249,9 @@ const Trade = ({ symbol = "TATA" }) => {
               <input
                 type="number"
                 name="price"
-                placeholder="Enter price"
+                placeholder={`${currentPrice}`}
                 className="w-full p-3 rounded-md bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
-                value={object.price}
+                value={object.quantity * currentPrice}
                 onChange={(e) =>
                   setObject({
                     ...object,
@@ -293,7 +320,7 @@ const Trade = ({ symbol = "TATA" }) => {
                 setObject({
                   ...object,
                   quantity: 0,
-                  price: 0,
+                  price: currentPrice,
                   display: 0,
                   date: new Date().toLocaleDateString(),
                 });
@@ -311,12 +338,13 @@ const Trade = ({ symbol = "TATA" }) => {
 
             {/* Balance Info */}
             <p className="text-sm text-gray-400 text-left">Balance: ₹{balance}</p>
+            
           </form>
         </div>
 
-        
+
       </div>
-     
+
     </>
   );
 };

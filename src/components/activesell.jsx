@@ -7,8 +7,9 @@ const ActiveSellList = () => {
   const [activeBuy, setActiveBuy] = useLocalStorage("activeBuy", []);
   const [history, setHistory] = useLocalStorage("history", []);
   const [balance, setBalance] = useBalance();
-
+  const [object, setObject] = useLocalStorage("object", {});
   const [profits, setProfits] = useState([]);
+  const [buttonColor, setButtonColor] = useState("gray")
 
   // Helper function to find the corresponding buy price
   const findBuyPrice = (stock) => {
@@ -23,11 +24,19 @@ const ActiveSellList = () => {
     return baseProfit + parseFloat(fluctuation);
   };
 
+  useEffect(()=>{
+    if(profits>=0){
+      setButtonColor("green")
+    }
+    else{
+      setButtonColor("red")
+    }
+  },[profits])
   useEffect(() => {
     const updateProfits = () => {
       const newProfits = activeSell.map((trade) => {
         const buyPrice = findBuyPrice(trade.stock);
-        return calculateProfit(trade.price, buyPrice, trade.quantity);
+        return calculateProfit(object.price, buyPrice, object.quantity);
       });
       setProfits(newProfits);
     };
@@ -88,8 +97,10 @@ const ActiveSellList = () => {
                 </td>
                 <td className="py-2">
                   <button
-                    className="bg-green-500 text-white py-2 px-4 rounded-lg"
+                    style={{ backgroundColor: buttonColor }}
+                    className="text-white py-2 px-4 rounded-lg"
                     onClick={() => closeSellTrade(trade, index)}
+                    id="closetrade-button"
                   >
                     Close Trade
                   </button>

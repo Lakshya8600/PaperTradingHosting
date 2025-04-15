@@ -7,16 +7,28 @@ const ActiveBuyList = () => {
   const [activeSell, setActiveSell] = useLocalStorage("activeSell", []);
   const [history, setHistory] = useLocalStorage("history", []);
   const [balance, setBalance] = useBalance();
+  const [object, setObject] = useLocalStorage("object", {});
+  const [buttonColor, setButtonColor] = useState("gray")
 
-  const currentPrice = 1000;
+  // const currentPrice = 1000;
   const [profits, setProfits] = useState([]);
 
   const calculateProfit = (buyPrice, quantity) => {
-    let profit = (currentPrice - buyPrice) * quantity; 
-    let fluctuatedProfit = profit + (Math.random() * 2 - 1);
+    let profit = (object.price - buyPrice) * quantity; 
+    let fluctuatedProfit = profit + (Math.random() * 0.02 - 0.01);
+    // console.log('i m here')
+    // console.log("curr",currentPrice)
     return fluctuatedProfit;
   };
 
+  useEffect(() => {
+    if(profits >= 0) {
+      setButtonColor("green")
+    }
+    else{
+      setButtonColor("red")
+    }
+  },[profits])
   useEffect(() => {
     const updateProfits = () => {
       const newProfits = activeBuy.map((trade) =>
@@ -47,7 +59,7 @@ const ActiveBuyList = () => {
     setHistory((prevHistory) => [...prevHistory, completedBuyTrade]);
 
     // Update balance
-    setBalance((prevBalance) => prevBalance + trade.quantity * currentPrice);
+    setBalance((prevBalance) => prevBalance + trade.quantity * object.price);
   };
 
   return (
@@ -82,7 +94,8 @@ const ActiveBuyList = () => {
                 </td>
                 <td className="py-2">
                   <button
-                    className="bg-red-500 text-white py-2 px-4 rounded-lg"
+                    style={{ backgroundColor: buttonColor }}
+                    className=" text-white py-2 px-4 rounded-lg"
                     onClick={() => closeBuyTrade(trade, index)}
                   >
                     Close Trade

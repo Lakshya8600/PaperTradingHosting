@@ -26,6 +26,7 @@ const Trade = ({ symbol }) => {
 
   const fetchData = async () => {
     try {
+      
       setLoading(true);
       setError(null);
 
@@ -51,9 +52,9 @@ const Trade = ({ symbol }) => {
 
       const candlestickData = dates.map((timestamp, index) => {
         const utcDate = new Date(timestamp);
-        const istOffset = 5.5 * 60 * 60 * 1000;
+        const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
         const istDate = new Date(utcDate.getTime() + istOffset);
-
+      
         return {
           x: istDate,
           y: [opens[index], highs[index], lows[index], closes[index]],
@@ -62,8 +63,13 @@ const Trade = ({ symbol }) => {
 
       setSeries([{ data: candlestickData }]);
 
+      // Update the current price with the latest close value
       const latestClose = closes[closes.length - 1];
       setCurrentPrice(latestClose);
+      // //testing
+      // console.log("i m in fetchData, current price:", currentPrice);
+      // //
+      
     } catch (err) {
       console.error("Error fetching chart:", err);
       setError(err.message);
@@ -72,19 +78,22 @@ const Trade = ({ symbol }) => {
       setLoading(false);
     }
   };
-
+  // useEffect(()=>{
+  //   console.log("i m in useEffect, current price:", currentPrice);
+  // },[currentPrice])
   useEffect(() => {
+    // Fetch data whenever symbol, range, or interval changes
     fetchData();
   }, [symbol, range, interval]);
 
-  // Sync stock and price in `object` whenever currentPrice or symbol changes
   useEffect(() => {
+    // Update the object state whenever currentPrice or symbol changes
     setObject((prev) => ({
       ...prev,
       stock: symbol,
       price: currentPrice,
     }));
-  }, [symbol, currentPrice]);
+  }, [currentPrice, symbol]);
 
   const handleCloseTrade = (tradeIndex, type) => {
     let trade;
@@ -236,6 +245,7 @@ const Trade = ({ symbol }) => {
             onClick={(e) => {
               e.preventDefault();
 
+
               const trade = {
                 stock: symbol,
                 quantity: object.quantity,
@@ -270,6 +280,7 @@ const Trade = ({ symbol }) => {
                 stock: symbol,
                 date: new Date().toLocaleDateString(),
               });
+              console.log("here11",object)
             }}
             className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition duration-300"
           >
@@ -278,6 +289,7 @@ const Trade = ({ symbol }) => {
 
           <p className="text-sm text-gray-400">Balance: ₹{balance}</p>
         </form>
+        
       </div>
       <button
         onClick={() => {
@@ -285,13 +297,12 @@ const Trade = ({ symbol }) => {
             setBalance(100000);
           }
         }}
-
-      className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition duration-300"
+        className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition duration-300"
       >
         Reset Balance
-        
-      </button>
 
+      </button>
+        
     </div>
   );
 };

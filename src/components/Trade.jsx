@@ -309,6 +309,10 @@ const Trade = ({ symbol }) => {
                 };
 
                 if (action === "buy") {
+                  if (object.quantity > balance) {
+                    alert("Insufficient balance!");
+                    return;
+                  }
                   const updatedBuyList = [...activeBuy, trade];
                   setActiveBuy(updatedBuyList);
                 } else {

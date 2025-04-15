@@ -5,28 +5,24 @@ import { useBalance } from "../hooks/useBalance";
 
 const Trade = ({ symbol }) => {
   const [currentPrice, setCurrentPrice] = useState(null);
-  const [companyName, setCompanyName] = useState(symbol);
   const [balance, setBalance] = useBalance();
   const [range, setRange] = useState("6mo");
   const [interval, setInterval] = useState("1d");
   const [series, setSeries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-
-  // const [object, setObject] = useLocalStorage("object", {
-  //   quantity: "",
-  //   stock: symbol,
-  //   price: currentPrice,
-  //   date: new Date().toLocaleDateString(),
-  //   display: "",
-  // });
+  const [action, setAction] = useState("buy");
 
   const [activeBuy, setActiveBuy] = useLocalStorage("activeBuy", []);
   const [activeSell, setActiveSell] = useLocalStorage("activeSell", []);
   const [history, setHistory] = useLocalStorage("history", []);
-
-  const [action, setAction] = useState("buy");
+  const [object, setObject] = useLocalStorage("object", {
+    quantity: 0,
+    stock: symbol,
+    price: currentPrice,
+    date: new Date().toLocaleDateString(),
+    display: 0,
+  });
 
   const fetchData = async () => {
     try {
@@ -55,7 +51,7 @@ const Trade = ({ symbol }) => {
 
       const candlestickData = dates.map((timestamp, index) => {
         const utcDate = new Date(timestamp);
-        const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+        const istOffset = 5.5 * 60 * 60 * 1000;
         const istDate = new Date(utcDate.getTime() + istOffset);
 
         return {
@@ -65,10 +61,9 @@ const Trade = ({ symbol }) => {
       });
 
       setSeries([{ data: candlestickData }]);
+
       const latestClose = closes[closes.length - 1];
       setCurrentPrice(latestClose);
-    
-
     } catch (err) {
       console.error("Error fetching chart:", err);
       setError(err.message);
@@ -78,19 +73,18 @@ const Trade = ({ symbol }) => {
     }
   };
 
-
-
   useEffect(() => {
     fetchData();
   }, [symbol, range, interval]);
 
-  const [object, setObject] = useLocalStorage("object", {
-    quantity: 0,
-    stock: symbol,
-    price: currentPrice,
-    date: new Date().toLocaleDateString(),
-    display: 0,
-  });
+  // Sync stock and price in `object` whenever currentPrice or symbol changes
+  useEffect(() => {
+    setObject((prev) => ({
+      ...prev,
+      stock: symbol,
+      price: currentPrice,
+    }));
+  }, [symbol, currentPrice]);
 
   const handleCloseTrade = (tradeIndex, type) => {
     let trade;
@@ -102,28 +96,22 @@ const Trade = ({ symbol }) => {
       updatedList.splice(tradeIndex, 1);
       setActiveBuy(updatedList);
 
-      const completedTrade = {
-        ...trade,
-        action: "buy (closed)",
-        date: new Date().toLocaleDateString(),
-      };
-      setHistory((prevHistory) => [...prevHistory, completedTrade]);
-
-      setBalance((prevBalance) => prevBalance + trade.quantity * trade.price);
+      setHistory((prev) => [
+        ...prev,
+        { ...trade, action: "buy (closed)", date: new Date().toLocaleDateString() },
+      ]);
+      setBalance((prev) => prev + trade.quantity * trade.price);
     } else {
       updatedList = [...activeSell];
       trade = updatedList[tradeIndex];
       updatedList.splice(tradeIndex, 1);
       setActiveSell(updatedList);
 
-      const completedTrade = {
-        ...trade,
-        action: "sell (closed)",
-        date: new Date().toLocaleDateString(),
-      };
-      setHistory((prevHistory) => [...prevHistory, completedTrade]);
-
-      setBalance((prevBalance) => prevBalance + trade.quantity * trade.price);
+      setHistory((prev) => [
+        ...prev,
+        { ...trade, action: "sell (closed)", date: new Date().toLocaleDateString() },
+      ]);
+      setBalance((prev) => prev + trade.quantity * trade.price);
     }
   };
 
@@ -149,203 +137,161 @@ const Trade = ({ symbol }) => {
         formatter: (value) => Math.round(value),
       },
     },
-    theme: {
-      mode: "dark",
-    },
+    theme: { mode: "dark" },
   };
 
   return (
-    <>
-
-      <div className="min-h-screen bg-gray-950 text-white px-4 py-12">
-        {/* Range and Interval Selectors */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-          <select
-            value={range}
-            onChange={(e) => setRange(e.target.value)}
-            className="px-4 py-2 rounded-md bg-gray-800 text-white border border-gray-600"
-          >
-            <option value="1d">1 Day</option>
-            <option value="1wk">1 Week</option>
-            <option value="1mo">1 Month</option>
-            <option value="3mo">3 Months</option>
-            <option value="6mo">6 Months</option>
-            <option value="1y">1 Year</option>
-          </select>
-          <select
-            value={interval}
-            onChange={(e) => setInterval(e.target.value)}
-            className="px-4 py-2 rounded-md bg-gray-800 text-white border border-gray-600"
-          >
-            <option value="1m">1 Min</option>
-            <option value="5m">5 Min</option>
-            <option value="1h">1 hr</option>
-            <option value="1d">1 Day</option>
-            <option value="1wk">1 Week</option>
-            <option value="1mo">1 Month</option>
-          </select>
-          <button
-            onClick={fetchData}
-            className="px-5 py-2 rounded-lg bg-gradient-to-tr from-blue-500 to-cyan-400 text-white font-semibold transition hover:shadow-lg hover:-translate-y-1 duration-300"
-          >
-            Refresh
-          </button>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="text-center text-red-400 mb-6">
-            <p>Error: {error}</p>
-          </div>
-        )}
-
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-semibold text-white">
-            {symbol} 
-          </h2>
-          {currentPrice && (
-            <p className="text-lg text-green-400 mt-1">
-              Current Price: ₹{Number(currentPrice).toFixed(2)}
-            </p>
-          )}
-        </div>
-
-        {/* Candlestick Chart */}
-        <div className="bg-gray-900 p-4 rounded-xl shadow-xl mb-12">
-          {loading ? (
-            <p className="text-center text-gray-300">Loading chart...</p>
-          ) : (
-            <ApexChart options={options} series={series} type="candlestick" height={350} />
-          )}
-        </div>
-
-        {/* Trade Panel */}
-        <div className="flex justify-center items-center">
-          <form className="bg-gray-900 p-8 rounded-xl shadow-xl w-full max-w-md space-y-6">
-            <h2 className="text-3xl font-bold text-center text-green-400">Trade Panel</h2>
-            <span className="text-sm text-gray-400 flex items-center">Current Price of the stock: ₹{Number(currentPrice).toFixed(2)}</span>
-            {/* Quantity Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Quantity</label>
-              <input
-                type="number"
-                name="quantity"
-                placeholder="Enter quantity"
-                className="w-full p-3 rounded-md bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
-                value={object.display}
-                onChange={(e) =>
-                  setObject({
-                    ...object,
-                    quantity: Number(e.target.value),
-                    display: Number(e.target.value),
-                  })
-                }
-              />
-            </div>
-
-            {/* Price Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Price</label>
-              <input
-                type="number"
-                name="price"
-                placeholder={`${currentPrice}`}
-                className="w-full p-3 rounded-md bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
-                value={object.quantity * currentPrice}
-                onChange={(e) =>
-                  setObject({
-                    ...object,
-                    price: Number(e.target.value),
-                  })
-                }
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Action</label>
-              <div className="flex rounded-full overflow-hidden border border-gray-700">
-                <label className="flex-1 text-center">
-                  <input
-                    type="radio"
-                    name="action"
-                    value="buy"
-                    className="hidden peer"
-                    checked={action === "buy"}
-                    onChange={() => setAction("buy")}
-                  />
-                  <span className="block py-2 peer-checked:bg-green-500 peer-checked:text-white text-gray-400 font-medium transition">
-                    Buy
-                  </span>
-                </label>
-                <label className="flex-1 text-center">
-                  <input
-                    type="radio"
-                    name="action"
-                    value="sell"
-                    className="hidden peer"
-                    checked={action === "sell"}
-                    onChange={() => setAction("sell")}
-                  />
-                  <span className="block py-2 peer-checked:bg-red-500 peer-checked:text-white text-gray-400 font-medium transition">
-                    Sell
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition duration-300"
-              onClick={(e) => {
-                e.preventDefault();
-
-                const trade = {
-                  stock: object.stock,
-                  quantity: object.quantity,
-                  price: object.price,
-                  date: new Date().toLocaleDateString(),
-                };
-
-                if (action === "buy") {
-                  if (object.quantity > balance) {
-                    alert("Insufficient balance!");
-                    return;
-                  }
-                  const updatedBuyList = [...activeBuy, trade];
-                  setActiveBuy(updatedBuyList);
-                } else {
-                  const updatedSellList = [...activeSell, trade];
-                  setActiveSell(updatedSellList);
-                }
-
-                // Reset form input values
-                setObject({
-                  ...object,
-                  quantity: 0,
-                  price: currentPrice,
-                  display: 0,
-                  date: new Date().toLocaleDateString(),
-                });
-
-                // Update balance
-                setBalance((prevBalance) => prevBalance - object.quantity * object.price);
-              }}
-            >
-              Submit Trade
-            </button>
-
-            {/* Balance Info */}
-            <p className="text-sm text-gray-400 text-left">Balance: ₹{balance}</p>
-            
-          </form>
-        </div>
-
-
+    <div className="min-h-screen bg-gray-950 text-white px-4 py-12">
+      {/* Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+        <select value={range} onChange={(e) => setRange(e.target.value)} className="px-4 py-2 rounded-md bg-gray-800 text-white border border-gray-600">
+          <option value="1d">1 Day</option>
+          <option value="1wk">1 Week</option>
+          <option value="1mo">1 Month</option>
+          <option value="3mo">3 Months</option>
+          <option value="6mo">6 Months</option>
+          <option value="1y">1 Year</option>
+        </select>
+        <select value={interval} onChange={(e) => setInterval(e.target.value)} className="px-4 py-2 rounded-md bg-gray-800 text-white border border-gray-600">
+          <option value="1m">1 Min</option>
+          <option value="5m">5 Min</option>
+          <option value="1h">1 hr</option>
+          <option value="1d">1 Day</option>
+          <option value="1wk">1 Week</option>
+          <option value="1mo">1 Month</option>
+        </select>
+        <button onClick={fetchData} className="px-5 py-2 rounded-lg bg-gradient-to-tr from-blue-500 to-cyan-400 text-white font-semibold transition hover:shadow-lg hover:-translate-y-1 duration-300">
+          Refresh
+        </button>
       </div>
 
-    </>
+      {/* Error */}
+      {error && <div className="text-center text-red-400 mb-6">Error: {error}</div>}
+
+      {/* Current Price */}
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-semibold">{symbol}</h2>
+        {currentPrice && <p className="text-lg text-green-400 mt-1">Current Price: ₹{Number(currentPrice).toFixed(2)}</p>}
+      </div>
+
+      {/* Chart */}
+      <div className="bg-gray-900 p-4 rounded-xl shadow-xl mb-12">
+        {loading ? <p className="text-center text-gray-300">Loading chart...</p> : <ApexChart options={options} series={series} type="candlestick" height={350} />}
+      </div>
+
+      {/* Trade Panel */}
+      <div className="flex justify-center items-center">
+        <form className="bg-gray-900 p-8 rounded-xl shadow-xl w-full max-w-md space-y-6">
+          <h2 className="text-3xl font-bold text-center text-green-400">Trade Panel</h2>
+          <span className="text-sm text-gray-400">Current Price: ₹{Number(currentPrice).toFixed(2)}</span>
+
+          {/* Quantity */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Quantity</label>
+            <input
+              type="number"
+              value={object.display}
+              onChange={(e) =>
+                setObject({
+                  ...object,
+                  quantity: Number(e.target.value),
+                  display: Number(e.target.value),
+                  price: currentPrice,
+                })
+              }
+              className="w-full p-3 rounded-md bg-gray-800 text-white border border-gray-700"
+              placeholder="Enter quantity"
+            />
+          </div>
+
+          {/* Price (read-only, shows total price) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Total</label>
+            <input
+              type="number"
+              value={object.quantity * currentPrice}
+              readOnly
+              className="w-full p-3 rounded-md bg-gray-800 text-white border border-gray-700"
+            />
+          </div>
+
+          {/* Action */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Action</label>
+            <div className="flex rounded-full overflow-hidden border border-gray-700">
+              <label className="flex-1 text-center">
+                <input type="radio" value="buy" checked={action === "buy"} onChange={() => setAction("buy")} className="hidden peer" />
+                <span className="block py-2 peer-checked:bg-green-500 peer-checked:text-white text-gray-400 font-medium">Buy</span>
+              </label>
+              <label className="flex-1 text-center">
+                <input type="radio" value="sell" checked={action === "sell"} onChange={() => setAction("sell")} className="hidden peer" />
+                <span className="block py-2 peer-checked:bg-red-500 peer-checked:text-white text-gray-400 font-medium">Sell</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            onClick={(e) => {
+              e.preventDefault();
+
+              const trade = {
+                stock: symbol,
+                quantity: object.quantity,
+                price: currentPrice,
+                date: new Date().toLocaleDateString(),
+              };
+
+              if (action === "buy") {
+                const cost = object.quantity * currentPrice;
+                if (cost > balance) {
+                  alert("Insufficient balance!");
+                  return;
+                }
+                setActiveBuy([...activeBuy, trade]);
+                setBalance((prev) => prev - cost);
+              } else {
+                const cost = object.quantity * currentPrice;
+                if (cost > balance) {
+                  alert("Insufficient balance!");
+                  return;
+                }
+                setActiveSell([...activeSell, trade]);
+                setBalance((prev) => prev - cost);
+              }
+
+              // Reset input
+              setObject({
+                ...object,
+                quantity: 0,
+                display: 0,
+                price: currentPrice,
+                stock: symbol,
+                date: new Date().toLocaleDateString(),
+              });
+            }}
+            className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition duration-300"
+          >
+            Submit Trade
+          </button>
+
+          <p className="text-sm text-gray-400">Balance: ₹{balance}</p>
+        </form>
+      </div>
+      <button
+        onClick={() => {
+          if (confirm("Are you sure you want to reset your balance?")) {
+            setBalance(100000);
+          }
+        }}
+
+      className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition duration-300"
+      >
+        Reset Balance
+      </button>
+
+    </div>
   );
 };
 

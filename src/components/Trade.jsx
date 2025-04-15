@@ -289,6 +289,7 @@ const Trade = ({ symbol }) => {
       className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition duration-300"
       >
         Reset Balance
+        
       </button>
 
     </div>

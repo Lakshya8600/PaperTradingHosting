@@ -123,7 +123,7 @@ const Trade = ({ symbol }) => {
       };
       setHistory((prevHistory) => [...prevHistory, completedTrade]);
 
-      setBalance((prevBalance) => prevBalance - trade.quantity * trade.price);
+      setBalance((prevBalance) => prevBalance + trade.quantity * trade.price);
     }
   };
 
@@ -188,7 +188,7 @@ const Trade = ({ symbol }) => {
             onClick={fetchData}
             className="px-5 py-2 rounded-lg bg-gradient-to-tr from-blue-500 to-cyan-400 text-white font-semibold transition hover:shadow-lg hover:-translate-y-1 duration-300"
           >
-            Search
+            Refresh
           </button>
         </div>
 
@@ -326,11 +326,7 @@ const Trade = ({ symbol }) => {
                 });
 
                 // Update balance
-                setBalance((prevBalance) =>
-                  action === "buy"
-                    ? prevBalance - object.quantity * object.price
-                    : prevBalance + object.quantity * object.price
-                );
+                setBalance((prevBalance) => prevBalance - object.quantity * object.price);
               }}
             >
               Submit Trade

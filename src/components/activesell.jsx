@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
 import { useBalance } from "../hooks/useBalance";
@@ -9,28 +8,35 @@ const ActiveSellList = () => {
   const [history, setHistory] = useLocalStorage("history", []);
   const [balance, setBalance] = useBalance();
 
-  const currentPrice = 1000;
   const [profits, setProfits] = useState([]);
 
-  const calculateProfit = (sellPrice, quantity) => {
-    let profit = (sellPrice - currentPrice) * quantity; 
-    let fluctuatedProfit = profit + (Math.random() * 2 - 1);
-    return fluctuatedProfit;
+  // Helper function to find the corresponding buy price
+  const findBuyPrice = (stock) => {
+    const buyTrade = activeBuy.find((trade) => trade.stock === stock);
+    return buyTrade ? buyTrade.price : 0; // Default to 0 if no matching buy trade is found
+  };
+
+  // Calculate profit based on the difference between sell price and buy price
+  const calculateProfit = (sellPrice, buyPrice, quantity) => {
+    const baseProfit = (sellPrice - buyPrice) * quantity;
+    const fluctuation = (Math.random() * 0.02 - 0.01).toFixed(2); 
+    return baseProfit + parseFloat(fluctuation);
   };
 
   useEffect(() => {
     const updateProfits = () => {
-      const newProfits = activeSell.map((trade) =>
-        calculateProfit(trade.price, trade.quantity)
-      );
+      const newProfits = activeSell.map((trade) => {
+        const buyPrice = findBuyPrice(trade.stock);
+        return calculateProfit(trade.price, buyPrice, trade.quantity);
+      });
       setProfits(newProfits);
     };
 
     updateProfits();
-    const interval = setInterval(updateProfits, 1000);
+    const interval = setInterval(updateProfits, 1000); // Update every second
 
     return () => clearInterval(interval);
-  }, [activeSell]);
+  }, [activeSell, activeBuy]);
 
   const closeSellTrade = (trade, index) => {
     // Remove sell trade
@@ -46,9 +52,8 @@ const ActiveSellList = () => {
     };
     setHistory((prevHistory) => [...prevHistory, completedSellTrade]);
 
-    
-    // Update balance
-    setBalance((prevBalance) => prevBalance - trade.quantity * currentPrice);
+    // Update balance (add the total sell value)
+    setBalance((prevBalance) => prevBalance + trade.quantity * trade.price);
   };
 
   return (
@@ -98,4 +103,4 @@ const ActiveSellList = () => {
   );
 };
 
-export default ActiveSellList;
+export default ActiveSellList;

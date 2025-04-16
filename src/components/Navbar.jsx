@@ -16,7 +16,7 @@ const Navbar = ({ symbol, setSymbol }) => {
   };
 
   return (
-    <nav className="bg-gray-900 text-white shadow-lg py-3">
+    <nav className="bg-gray-900 text-white shadow-lg py-3 w-full">
       <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4 px-6">
         {/* Logo and Brand Name */}
         <div className="flex items-center gap-3 cursor-pointer">

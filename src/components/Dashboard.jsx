@@ -16,7 +16,7 @@ const Dashboard = ({ symbol }) => {
     <>
       
 
-      <div className="min-h-screen bg-gray-950 text-white flex">
+      <div className="min-h-screen bg-gray-950 text-white flex ">
         {/* Sidebar */}
         {/* <div className="w-64 bg-gray-900 p-6 shadow-xl">
           <h2 className="text-2xl font-semibold text-green-400 mb-8">Dashboard</h2>

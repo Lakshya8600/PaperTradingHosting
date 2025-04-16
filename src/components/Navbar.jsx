@@ -34,7 +34,7 @@ const Navbar = ({ symbol, setSymbol }) => {
             <input
               type="text"
               placeholder="Stock Symbol (e.g., ICICIBANK)"
-              value={input}
+              value=""
               onChange={(e) => setInput(e.target.value.toUpperCase())}
               className="w-full px-4 py-2 rounded-full bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400"
             />

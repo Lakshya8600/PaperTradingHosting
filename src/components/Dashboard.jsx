@@ -35,7 +35,7 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-green-400 mb-6">Welcome back, User!</h1>
 
           {/* Dashboard Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-50 gap-6 mb-8">
             <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
               <h3 className="text-xl font-semibold mb-3">Total Balance</h3>
               <p className="text-2xl font-bold">₹{balance}</p>
@@ -52,7 +52,7 @@ const Dashboard = () => {
           <ActiveBuyList />
           <ActiveSellList />
           {/* Recent Activity */}
-          <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-xl my-8">
             <h3 className="text-xl font-semibold mb-4">Recent Activity</h3>
             <ul className="space-y-4">
               <li className="text-gray-300">Bought 10 BTC at ₹35,000</li>

@@ -50,10 +50,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/trade" element={<Trade symbol={symbol} />} />
-          <Route path="/trade" element={<Trade />} />
           <Route path="/login" element={<Login />} /> 
           <Route path="/report" element={<Report />} />
-          <Route path="/dashboard" element={<Dashboard />} /> 
+          <Route path="/dashboard" element={<Dashboard symbol={symbol}/>} /> 
           <Route path="*" element={<Notfound />} />
         </Routes>
       </Router>

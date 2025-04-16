@@ -8,10 +8,22 @@ import Report from "./components/Report";
 import Dashboard from "./components/Dashboard";
 import Notfound from "./components/Notfound";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useLocalStorage } from "usehooks-ts";
 
 function App() {
   const [symbol, setSymbol] = useState("ICICIBANK");
 
+  const [reload,setReload] = useLocalStorage("reload",0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setReload((prev) => prev + 1);
+      console.log("Reloading data...");
+    }, 1000 * 6); 
+    return () => clearInterval(interval); 
+  }, []);
+
+  
   
   useEffect(() => {
     // Fetch the data whenever the symbol changes
@@ -40,7 +52,7 @@ function App() {
     };
 
     fetchData();
-  }, [symbol]);
+  }, [symbol, reload]);
 
   return (
     <>
@@ -61,5 +73,5 @@ function App() {
     </>
   );
 }
-
+//only /,/login,* should be accessible to non logged in users
 export default App;

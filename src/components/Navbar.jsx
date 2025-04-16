@@ -19,7 +19,7 @@ const Navbar = ({ symbol, setSymbol }) => {
     <nav className="bg-gray-900 text-white shadow-lg py-3">
       <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4 px-6">
         {/* Logo and Brand Name */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 cursor-pointer">
           <h1 className="text-3xl font-extrabold tracking-wide">
             <span className="text-green-400">Trade</span>
             <span className="text-white">Sathi</span>
@@ -34,7 +34,7 @@ const Navbar = ({ symbol, setSymbol }) => {
             <input
               type="text"
               placeholder="Stock Symbol (e.g., ICICIBANK)"
-              value=""
+              value={input}
               onChange={(e) => setInput(e.target.value.toUpperCase())}
               className="w-full px-4 py-2 rounded-full bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400"
             />

@@ -49,6 +49,7 @@ const ActiveSellList = () => {
 
   const closeSellTrade = (trade, index) => {
     // Remove sell trade
+    alert("Are you sure you want to close this trade?")
     const updatedSellList = [...activeSell];
     updatedSellList.splice(index, 1);
     setActiveSell(updatedSellList);
@@ -66,49 +67,50 @@ const ActiveSellList = () => {
   };
 
   return (
-    <div className="bg-gray-800 p-6 rounded-lg shadow-xl mt-6">
-      <h3 className="text-xl font-semibold mb-4 text-red-400">Active Sell Trades</h3>
+    <div className="bg-gray-800 p-4 sm:p-6 rounded-lg shadow-xl mt-6">
+      <h3 className="text-lg sm:text-xl font-semibold mb-4 text-red-400">Active Sell Trades</h3>
 
       {activeSell.length === 0 ? (
         <p className="text-gray-400">No active sell trades found.</p>
       ) : (
-        <table className="w-full text-left">
-          <thead>
-            <tr className="text-gray-300 border-b border-gray-700">
-              <th className="pb-2">Stock</th>
-              <th className="pb-2">Quantity</th>
-              <th className="pb-2">Sell Price</th>
-              <th className="pb-2">Current Profit</th>
-              <th className="pb-2">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {activeSell.map((trade, index) => (
-              <tr key={index} className="text-white border-b border-gray-700">
-                <td className="py-2">{trade.stock}</td>
-                <td className="py-2">{trade.quantity}</td>
-                <td className="py-2">₹{trade.price}</td>
-                <td className={`py-2 ${profits[index] >= 0 ? "text-green-400" : "text-red-400"}`}>
-                  {profits[index] !== undefined
-                    ? profits[index] >= 0
-                      ? `₹${profits[index].toFixed(2)}`
-                      : `-₹${Math.abs(profits[index]).toFixed(2)}`
-                    : "₹0.00"}
-                </td>
-                <td className="py-2">
-                  <button
-                    style={{ backgroundColor: buttonColor }}
-                    className="text-white py-2 px-4 rounded-lg"
-                    onClick={() => closeSellTrade(trade, index)}
-                    id="closetrade-button"
-                  >
-                    Close Trade
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-center text-sm sm:text-base">
+            <thead>
+              <tr className="text-gray-300 border-b border-gray-700">
+                <th className="pb-2">Stock</th>
+                <th className="pb-2">Quantity</th>
+                <th className="pb-2">Sell Price</th>
+                <th className="pb-2">Current Profit</th>
+                <th className="pb-2">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {activeSell.map((trade, index) => (
+                <tr key={index} className="text-white border-b border-gray-700">
+                  <td className="py-2">{trade.stock}</td>
+                  <td className="py-2">{trade.quantity}</td>
+                  <td className="py-2">₹{Number(trade.price).toFixed(2)}</td>
+                  <td className={`py-2 ${profits[index] >= 0 ? "text-green-400" : "text-red-400"}`}>
+                    {profits[index] !== undefined
+                      ? profits[index] >= 0
+                        ? `₹${profits[index].toFixed(2)}`
+                        : `-₹${Math.abs(profits[index]).toFixed(2)}`
+                      : "₹0.00"}
+                  </td>
+                  <td className="py-2">
+                    <button
+                      style={{ backgroundColor: buttonColor }}
+                      className="text-white py-1 px-3 sm:py-2 sm:px-4 rounded-lg"
+                      onClick={() => closeSellTrade(trade, index)}
+                    >
+                      Close Trade
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

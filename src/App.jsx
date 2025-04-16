@@ -19,7 +19,7 @@ function App() {
     const interval = setInterval(() => {
       setReload((prev) => prev + 1);
       console.log("Reloading data...");
-    }, 1000 * 6); 
+    }, 1000 * 60); 
     return () => clearInterval(interval); 
   }, []);
 

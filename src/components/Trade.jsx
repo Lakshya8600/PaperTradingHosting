@@ -12,6 +12,7 @@ const Trade = ({ symbol }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [action, setAction] = useState("buy");
+  const [resetbal, setResetbal] = useState(4)
 
   const [activeBuy, setActiveBuy] = useLocalStorage("activeBuy", []);
   const [activeSell, setActiveSell] = useLocalStorage("activeSell", []);
@@ -299,13 +300,22 @@ const Trade = ({ symbol }) => {
         onClick={() => {
           if (confirm("Are you sure you want to reset your balance?")) {
             setBalance(100000);
+            
+            setResetbal(resetbal-1);
           }
         }}
-        className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition duration-300"
+        disabled={resetbal === 0} // Disable button if quantity is 0
+            className={`mt-4 px-4 py-2 rounded-lg font-semibold transition duration-300 ${
+              resetbal === 0
+                ? "bg-gray-500 cursor-not-allowed"
+                : "bg-red-600 hover:bg-red-700 text-white"
+            }`}
       >
-        Reset Balance
+        Reset Balance 
 
       </button>
+      <div className="text-sm text-gray-400 my-2">You can reset Balance only 4 times.</div>
+      <div className="text-sm text-gray-400 my-2">Your reset balances left {resetbal}.</div>
         
     </div>
   );

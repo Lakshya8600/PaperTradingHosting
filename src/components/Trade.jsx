@@ -30,7 +30,7 @@ const Trade = ({ symbol }) => {
       setLoading(true);
       setError(null);
 
-      const url = `https://kumrawatyogesh.pythonanywhere.com/info/${symbol}/${range}/${interval}`;
+      const url = `https://lakshyakumra1.pythonanywhere.com/info/${symbol}/${range}/${interval}`;
       const response = await fetch(url);
 
       if (!response.ok) {

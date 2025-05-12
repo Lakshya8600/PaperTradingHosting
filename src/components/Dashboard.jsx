@@ -55,9 +55,9 @@ const Dashboard = ({ symbol }) => {
             <h3 className="text-xl font-semibold mb-4">Recent Activity</h3>
             <ul className="space-y-4">
               <li className="text-gray-300">Bought {symbol} at ₹35,000</li>
-              <li className="text-gray-300">Sold 5 BTC at ₹40,000</li>
+              <li className="text-gray-300">Sold 5 SBIBANK at ₹40,000</li>
               <li className="text-gray-300">Withdrawn ₹2,000 to bank</li>
-              <li className="text-gray-300">Deposit ₹5,000</li>
+              <li className="text-gray-300">Deposit ₹5,000 from UPI</li>
             </ul>
           </div>
         </div>

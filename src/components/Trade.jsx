@@ -245,7 +245,6 @@ const Trade = ({ symbol }) => {
             onClick={(e) => {
               e.preventDefault();
 
-
               const trade = {
                 stock: symbol,
                 quantity: object.quantity,
@@ -280,9 +279,14 @@ const Trade = ({ symbol }) => {
                 stock: symbol,
                 date: new Date().toLocaleDateString(),
               });
-              console.log("here11",object)
+              console.log("here11", object);
             }}
-            className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition duration-300"
+            disabled={object.quantity === 0} // Disable button if quantity is 0
+            className={`w-full py-3 rounded-lg font-semibold transition duration-300 ${
+              object.quantity === 0
+                ? "bg-gray-500 cursor-not-allowed"
+                : "bg-green-500 hover:bg-green-600 text-white"
+            }`}
           >
             Submit Trade
           </button>
